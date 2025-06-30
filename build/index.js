@@ -18,6 +18,7 @@ const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const axios_1 = __importDefault(require("axios"));
+const db_1 = require("./lib/db");
 function startServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
@@ -39,6 +40,10 @@ function startServer() {
           type Query {
               getToDo : [ToDO] 
           }
+
+          type Mutation{
+            createUser(firstName:String!, lastName:String!,email:String!, password:String!):Boolean
+          }
         `,
             resolvers: {
                 ToDO: {
@@ -50,6 +55,20 @@ function startServer() {
                     getToDo: () => __awaiter(this, void 0, void 0, function* () { return (yield axios_1.default.get("https://jsonplaceholder.typicode.com/todos")).data; }),
                     // getUser: async () =>
                     // (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
+                },
+                Mutation: {
+                    createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password, }) {
+                        yield db_1.prismaClient.user.create({
+                            data: {
+                                email,
+                                firstName,
+                                lastName,
+                                password,
+                                salt: "random_salt",
+                            },
+                        });
+                        return true;
+                    }),
                 },
             },
         });

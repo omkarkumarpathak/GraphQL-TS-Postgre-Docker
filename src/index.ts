@@ -1,12 +1,13 @@
+import { User } from "./../node_modules/.prisma/client/index.d";
 import express from "express";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import bodyParser from "body-parser";
 import cors from "cors";
 import axios from "axios";
+import { prismaClient } from "./lib/db";
 
 async function startServer() {
-  
   const app = express();
   app.use(express.json());
 
@@ -27,6 +28,10 @@ async function startServer() {
           type Query {
               getToDo : [ToDO] 
           }
+
+          type Mutation{
+            createUser(firstName:String!, lastName:String!,email:String!, password:String!):Boolean
+          }
         `,
     resolvers: {
       ToDO: {
@@ -41,8 +46,36 @@ async function startServer() {
       Query: {
         getToDo: async () =>
           (await axios.get("https://jsonplaceholder.typicode.com/todos")).data,
-       // getUser: async () =>
-         // (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
+        // getUser: async () =>
+        // (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
+      },
+      Mutation: {
+        createUser: async (
+          _,
+          {
+            firstName,
+            lastName,
+            email,
+            password,
+          }: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            password: string;
+          }
+        ) => {
+          await prismaClient.user.create({
+            data: {
+              email,
+              firstName,
+              lastName,
+              password,
+              salt: "random_salt",
+            },
+          });
+
+          return true;
+        },
       },
     },
   });
