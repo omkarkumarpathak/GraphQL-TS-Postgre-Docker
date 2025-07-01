@@ -13,68 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const server_1 = require("@apollo/server");
 const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
-const axios_1 = __importDefault(require("axios"));
-const db_1 = require("./lib/db");
+const index_1 = __importDefault(require("./graphql/index"));
+//simply creating & integrating apollo server
 function startServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = (0, express_1.default)();
         app.use(express_1.default.json());
-        const server = new server_1.ApolloServer({
-            typeDefs: `
-          type User{
-              id:ID!
-              name:String!
-          }   
-
-          type ToDO{ 
-              id : ID!
-              title : String!
-              completed : Boolean!
-              user: User
-          }
-
-          type Query {
-              getToDo : [ToDO] 
-          }
-
-          type Mutation{
-            createUser(firstName:String!, lastName:String!,email:String!, password:String!):Boolean
-          }
-        `,
-            resolvers: {
-                ToDO: {
-                    user: (todo) => __awaiter(this, void 0, void 0, function* () {
-                        return (yield axios_1.default.get(`https://jsonplaceholder.typicode.com/users/${todo.userId}`)).data;
-                    }),
-                },
-                Query: {
-                    getToDo: () => __awaiter(this, void 0, void 0, function* () { return (yield axios_1.default.get("https://jsonplaceholder.typicode.com/todos")).data; }),
-                    // getUser: async () =>
-                    // (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
-                },
-                Mutation: {
-                    createUser: (_1, _a) => __awaiter(this, [_1, _a], void 0, function* (_, { firstName, lastName, email, password, }) {
-                        yield db_1.prismaClient.user.create({
-                            data: {
-                                email,
-                                firstName,
-                                lastName,
-                                password,
-                                salt: "random_salt",
-                            },
-                        });
-                        return true;
-                    }),
-                },
-            },
-        });
         app.use(body_parser_1.default.json());
         app.use((0, cors_1.default)());
-        yield server.start();
+        const server = yield (0, index_1.default)();
         app.use("/graphql", (0, express4_1.expressMiddleware)(server));
         app.use(express_1.default.json());
         //   const port = process.env.PORT || 3000;

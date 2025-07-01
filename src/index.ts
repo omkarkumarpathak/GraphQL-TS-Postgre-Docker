@@ -1,91 +1,23 @@
-import { User } from "./../node_modules/.prisma/client/index.d";
 import express from "express";
-import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import bodyParser from "body-parser";
 import cors from "cors";
-import axios from "axios";
-import { prismaClient } from "./lib/db";
+import ApolloCreateServer from './graphql/index'
+
+//simply creating & integrating apollo server
 
 async function startServer() {
+
   const app = express();
   app.use(express.json());
-
-  const server = new ApolloServer({
-    typeDefs: `
-          type User{
-              id:ID!
-              name:String!
-          }   
-
-          type ToDO{ 
-              id : ID!
-              title : String!
-              completed : Boolean!
-              user: User
-          }
-
-          type Query {
-              getToDo : [ToDO] 
-          }
-
-          type Mutation{
-            createUser(firstName:String!, lastName:String!,email:String!, password:String!):Boolean
-          }
-        `,
-    resolvers: {
-      ToDO: {
-        user: async (todo) =>
-          (
-            await axios.get(
-              `https://jsonplaceholder.typicode.com/users/${todo.userId}`
-            )
-          ).data,
-      },
-
-      Query: {
-        getToDo: async () =>
-          (await axios.get("https://jsonplaceholder.typicode.com/todos")).data,
-        // getUser: async () =>
-        // (await axios.get("https://jsonplaceholder.typicode.com/users")).data,
-      },
-      Mutation: {
-        createUser: async (
-          _,
-          {
-            firstName,
-            lastName,
-            email,
-            password,
-          }: {
-            firstName: string;
-            lastName: string;
-            email: string;
-            password: string;
-          }
-        ) => {
-          await prismaClient.user.create({
-            data: {
-              email,
-              firstName,
-              lastName,
-              password,
-              salt: "random_salt",
-            },
-          });
-
-          return true;
-        },
-      },
-    },
-  });
-
   app.use(bodyParser.json());
   app.use(cors());
-  await server.start();
 
+  const server= await ApolloCreateServer(); 
   app.use("/graphql", expressMiddleware(server));
+
   app.use(express.json());
+
   //   const port = process.env.PORT || 3000;
   app.listen(8000, () => {
     console.log("server is running ");
@@ -93,3 +25,4 @@ async function startServer() {
 }
 
 startServer();
+  
