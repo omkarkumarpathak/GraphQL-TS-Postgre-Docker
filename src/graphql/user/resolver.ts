@@ -1,5 +1,6 @@
 import { prismaClient } from "../../lib/db";
 import axios from "axios";
+import UserService, { CreateUserPayload } from "../../services/user";
 
 const queries = {
   getToDo: async () =>
@@ -7,31 +8,12 @@ const queries = {
 };
 
 const mutations = {
-  createUser: async (
-    _: any,
-    {
-      firstName,
-      lastName,
-      email,
-      password,
-    }: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-    }
-  ) => {
-    await prismaClient.user.create({
-      data: {
-        email,
-        firstName,
-        lastName,
-        password,
-        salt: "random_salt",
-      },
-    });
+  createUser: async (_: any, payload:CreateUserPayload)=>{
+  
+    const res=await UserService.createUser(payload);
 
-    return "randomId";
+    return res.id;
+    
   },
 };
 

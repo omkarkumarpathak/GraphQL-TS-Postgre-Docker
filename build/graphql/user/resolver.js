@@ -13,23 +13,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
-const db_1 = require("../../lib/db");
 const axios_1 = __importDefault(require("axios"));
+const user_1 = __importDefault(require("../../services/user"));
 const queries = {
     getToDo: () => __awaiter(void 0, void 0, void 0, function* () { return (yield axios_1.default.get("https://jsonplaceholder.typicode.com/todos")).data; }),
 };
 const mutations = {
-    createUser: (_1, _a) => __awaiter(void 0, [_1, _a], void 0, function* (_, { firstName, lastName, email, password, }) {
-        yield db_1.prismaClient.user.create({
-            data: {
-                email,
-                firstName,
-                lastName,
-                password,
-                salt: "random_salt",
-            },
-        });
-        return "randomId";
+    createUser: (_, payload) => __awaiter(void 0, void 0, void 0, function* () {
+        const res = yield user_1.default.createUser(payload);
+        return res.id;
     }),
 };
 exports.resolvers = { queries, mutations };
