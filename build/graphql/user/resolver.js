@@ -13,10 +13,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
-const axios_1 = __importDefault(require("axios"));
 const user_1 = __importDefault(require("../../services/user"));
 const queries = {
-    getToDo: () => __awaiter(void 0, void 0, void 0, function* () { return (yield axios_1.default.get("https://jsonplaceholder.typicode.com/todos")).data; }),
+    getUserToken: (_, payload) => __awaiter(void 0, void 0, void 0, function* () {
+        const token = yield user_1.default.getUserToken({
+            email: payload.email,
+            password: payload.password,
+        });
+        return token;
+    }),
+    getCurrentLoggedInUser: (_, parameters, context) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(context);
+        if (context && context.user) {
+            const id = context.user.id;
+            const user = yield user_1.default.getUserById(id);
+            return user;
+        }
+        throw new Error("Don't know user ");
+    })
 };
 const mutations = {
     createUser: (_, payload) => __awaiter(void 0, void 0, void 0, function* () {

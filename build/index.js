@@ -17,6 +17,7 @@ const express4_1 = require("@apollo/server/express4");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const index_1 = __importDefault(require("./graphql/index"));
+const user_1 = __importDefault(require("./services/user"));
 //simply creating & integrating apollo server
 function startServer() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,7 +26,19 @@ function startServer() {
         app.use(body_parser_1.default.json());
         app.use((0, cors_1.default)());
         const server = yield (0, index_1.default)();
-        app.use("/graphql", (0, express4_1.expressMiddleware)(server));
+        app.use("/graphql", (0, express4_1.expressMiddleware)(server, {
+            context: (_a) => __awaiter(this, [_a], void 0, function* ({ req }) {
+                //@ts-ignore
+                const token = req.headers["token"];
+                try {
+                    const user = user_1.default.decodeJWTToken(token);
+                    return { user };
+                }
+                catch (error) {
+                    return {};
+                }
+            }),
+        }));
         app.use(express_1.default.json());
         //   const port = process.env.PORT || 3000;
         app.listen(8000, () => {

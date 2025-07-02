@@ -8,11 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const axios_1 = __importDefault(require("axios"));
 const server_1 = require("@apollo/server");
 const user_1 = require("./user");
 //creating apollo server and exporting
@@ -20,21 +16,13 @@ function ApolloCreateServer() {
     return __awaiter(this, void 0, void 0, function* () {
         const server = new server_1.ApolloServer({
             typeDefs: `
-          type User{
-              id:ID!
-              name:String!
-          }   
 
-          type ToDO{ 
-              id : ID!
-              title : String!
-              completed : Boolean!
-              user: User
-          }
-
+          ${user_1.User.typeDefs}
+ 
+         
           type Query {
               ${user_1.User.queries}
-          }
+          }    
         
           type Mutation{
             ${user_1.User.mutations}
@@ -42,11 +30,6 @@ function ApolloCreateServer() {
  
         `,
             resolvers: {
-                ToDO: {
-                    user: (todo) => __awaiter(this, void 0, void 0, function* () {
-                        return (yield axios_1.default.get(`https://jsonplaceholder.typicode.com/users/${todo.userId}`)).data;
-                    }),
-                },
                 Query: Object.assign({}, user_1.User.resolvers.queries),
                 Mutation: Object.assign({}, user_1.User.resolvers.mutations),
             },
